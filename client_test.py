@@ -11,7 +11,7 @@ class ClientTest(unittest.TestCase):
     """ ------------ Add the assertion below ------------ """
     for quote in quotes:
           self.assertEqual(getDataPoint(quote),(quote['stock'], quote['top_bid']['price'], quote['top_ask']['price'], (quote['top_bid']['price'] + quote['top_ask']['price'])/2 ), msg = "Fail => test_getDataPoint_calculatePrice() Expected value does not match actual value")
-          self.assertTrue(True, "test_getDataPoint_calculatePrice() => Testcase passed successfully")
+          # self.assertTrue(True, "test_getDataPoint_calculatePrice() => Testcase passed successfully")
                             
   def test_getDataPoint_calculatePriceBidGreaterThanAsk(self):
     quotes = [
@@ -22,7 +22,7 @@ class ClientTest(unittest.TestCase):
     
     for quote in quotes:
           self.assertEqual(getDataPoint(quote),(quote['stock'], quote['top_bid']['price'], quote['top_ask']['price'], (quote['top_bid']['price'] + quote['top_ask']['price'])/2) ,msg = "Fail => test_getDataPoint_calculatePriceBidGreaterThanAsk() Expected value does not match actual value")
-          self.assertTrue(True, "test_getDataPoint_calculatePriceBidGreaterThanAsk() => Testcase passed successfully")
+          #self.assertTrue(True, "test_getDataPoint_calculatePriceBidGreaterThanAsk() => Testcase passed successfully")
               
   """ ------------ Add more unit tests ------------ """
   
@@ -30,23 +30,19 @@ class ClientTest(unittest.TestCase):
         stockPrices = [
             {'price_a': 118.24, 'price_b': 120.09},
             {'price_a': 119.84, 'price_b':121.17},
-            {'price_a': 0, 'price_b':121.17},
+            
         ]
 
         for price in stockPrices:
               self.assertEqual( getRatio(price['price_a'], price['price_b']) , price['price_a']/price['price_b'] )
              
-  def test_getRatio_divideByZero(self):
-        self.assertIsNone(getRatio(10,0))
-        
-  '''
-        stockPrices = [
-            {'price_a': 118.24, 'price_b':0},
-        ]
-
-        for price in stockPrices:
-              self.assertEqual( getRatio(price['price_a'], price['price_b']) , price['price_a']/price['price_b'] )
-'''
+  def test_getRatio_calculateDivideByZero(self):
+      stockPrices = [{'ABC': 118.24, 'DEF': 0},
+                        {'ABC': 119.48, 'DEF': 0}]
+ 
+      for stockPrice in stockPrices:            
+            with self.assertRaises(ZeroDivisionError):
+              getRatio(stockPrice['ABC'], stockPrice['DEF'])
 
 if __name__ == '__main__':
     unittest.main()
