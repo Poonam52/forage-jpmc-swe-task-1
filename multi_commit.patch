@@ -1,0 +1,212 @@
+From 7c58426be12861d3771afe6ff315e6c5d0957f2c Mon Sep 17 00:00:00 2001
+From: Poonam Patel <Poonampatel52@ymail.com>
+Date: Sat, 18 Mar 2023 00:48:18 -0700
+Subject: [PATCH 1/2] Added task1 changes
+
+---
+ client3.py     | 27 +++++++++++++++++++++------
+ client_test.py | 35 +++++++++++++++++++++++++++++++----
+ 2 files changed, 52 insertions(+), 10 deletions(-)
+
+diff --git a/client3.py b/client3.py
+index 3fc09b7..3230889 100644
+--- a/client3.py
++++ b/client3.py
+@@ -23,7 +23,7 @@ import random
+ import urllib.request
+ 
+ # Server API URLs
+-QUERY = "http://localhost:8080/query?id={}"
++QUERY = "http://localhost:5050/query?id={}"
+ 
+ # 500 server request
+ N = 500
+@@ -35,15 +35,26 @@ def getDataPoint(quote):
+     stock = quote['stock']
+     bid_price = float(quote['top_bid']['price'])
+     ask_price = float(quote['top_ask']['price'])
+-    price = bid_price
++    price = (bid_price + ask_price)/2
+     return stock, bid_price, ask_price, price
+ 
+ 
+-def getRatio(price_a, price_b):
++'''
++def getRatio(stockPrice):
+     """ Get ratio of price_a and price_b """
+     """ ------------- Update this function ------------- """
+-    return 1
++    price_a, price_b =stockPrice[:-1].split(',')
++    if(price_b == ''):
++        return
++    return "{:.2f}".format(float(price_a) / float(price_b))
++'''
+ 
++def getRatio(price_a, price_b):
++    """ Get ratio of price_a and price_b """
++    """ ------------- Update this function ------------- """
++    if(price_b == 0):
++        return
++    return price_a / price_b
+ 
+ # Main
+ if __name__ == "__main__":
+@@ -52,8 +63,12 @@ if __name__ == "__main__":
+         quotes = json.loads(urllib.request.urlopen(QUERY.format(random.random())).read())
+ 
+         """ ----------- Update to get the ratio --------------- """
++        #stockPrice = ''
++        prices={}
+         for quote in quotes:
+             stock, bid_price, ask_price, price = getDataPoint(quote)
++            prices[stock] = price
+             print("Quoted %s at (bid:%s, ask:%s, price:%s)" % (stock, bid_price, ask_price, price))
+-
+-        print("Ratio %s" % getRatio(price, price))
++            #stockPrice += str(price) + ','
++        print("Ratio %s" % getRatio(prices['ABC'], prices['DEF']))
++        #print("Ratio %s" % getRatio(stockPrice))
+diff --git a/client_test.py b/client_test.py
+index af2bf26..43f8dd0 100644
+--- a/client_test.py
++++ b/client_test.py
+@@ -1,5 +1,5 @@
+ import unittest
+-from client3 import getDataPoint
++from client3 import getDataPoint, getRatio
+ 
+ class ClientTest(unittest.TestCase):
+   def test_getDataPoint_calculatePrice(self):
+@@ -7,19 +7,46 @@ class ClientTest(unittest.TestCase):
+       {'top_ask': {'price': 121.2, 'size': 36}, 'timestamp': '2019-02-11 22:06:30.572453', 'top_bid': {'price': 120.48, 'size': 109}, 'id': '0.109974697771', 'stock': 'ABC'},
+       {'top_ask': {'price': 121.68, 'size': 4}, 'timestamp': '2019-02-11 22:06:30.572453', 'top_bid': {'price': 117.87, 'size': 81}, 'id': '0.109974697771', 'stock': 'DEF'}
+     ]
+-    """ ------------ Add the assertion below ------------ """
+ 
++    """ ------------ Add the assertion below ------------ """
++    for quote in quotes:
++          self.assertEqual(getDataPoint(quote),(quote['stock'], quote['top_bid']['price'], quote['top_ask']['price'], (quote['top_bid']['price'] + quote['top_ask']['price'])/2 ), msg = "Fail => test_getDataPoint_calculatePrice() Expected value does not match actual value")
++          self.assertTrue(True, "test_getDataPoint_calculatePrice() => Testcase passed successfully")
++                            
+   def test_getDataPoint_calculatePriceBidGreaterThanAsk(self):
+     quotes = [
+       {'top_ask': {'price': 119.2, 'size': 36}, 'timestamp': '2019-02-11 22:06:30.572453', 'top_bid': {'price': 120.48, 'size': 109}, 'id': '0.109974697771', 'stock': 'ABC'},
+       {'top_ask': {'price': 121.68, 'size': 4}, 'timestamp': '2019-02-11 22:06:30.572453', 'top_bid': {'price': 117.87, 'size': 81}, 'id': '0.109974697771', 'stock': 'DEF'}
+     ]
+     """ ------------ Add the assertion below ------------ """
+-
+-
++    
++    for quote in quotes:
++          self.assertEqual(getDataPoint(quote),(quote['stock'], quote['top_bid']['price'], quote['top_ask']['price'], (quote['top_bid']['price'] + quote['top_ask']['price'])/2) ,msg = "Fail => test_getDataPoint_calculatePriceBidGreaterThanAsk() Expected value does not match actual value")
++          self.assertTrue(True, "test_getDataPoint_calculatePriceBidGreaterThanAsk() => Testcase passed successfully")
++              
+   """ ------------ Add more unit tests ------------ """
++  
++  def test_getRatio_calculateRatio(self):
++        stockPrices = [
++            {'price_a': 118.24, 'price_b': 120.09},
++            {'price_a': 119.84, 'price_b':121.17},
++            {'price_a': 0, 'price_b':121.17},
++        ]
+ 
++        for price in stockPrices:
++              self.assertEqual( getRatio(price['price_a'], price['price_b']) , price['price_a']/price['price_b'] )
++             
++  def test_getRatio_divideByZero(self):
++        self.assertIsNone(getRatio(10,0))
++        
++  '''
++        stockPrices = [
++            {'price_a': 118.24, 'price_b':0},
++        ]
+ 
++        for price in stockPrices:
++              self.assertEqual( getRatio(price['price_a'], price['price_b']) , price['price_a']/price['price_b'] )
++'''
+ 
+ if __name__ == '__main__':
+     unittest.main()
+-- 
+2.37.3.windows.1
+
+
+From cb6d34df5b0a6cc1cf90537de4d7a26ff35caa74 Mon Sep 17 00:00:00 2001
+From: Poonam Patel <Poonampatel52@ymail.com>
+Date: Sat, 18 Mar 2023 00:55:29 -0700
+Subject: [PATCH 2/2] update test1
+
+---
+ client3.py     |  1 +
+ client_test.py | 24 ++++++++++--------------
+ 2 files changed, 11 insertions(+), 14 deletions(-)
+
+diff --git a/client3.py b/client3.py
+index 3230889..ad7f0ba 100644
+--- a/client3.py
++++ b/client3.py
+@@ -53,6 +53,7 @@ def getRatio(price_a, price_b):
+     """ Get ratio of price_a and price_b """
+     """ ------------- Update this function ------------- """
+     if(price_b == 0):
++        raise ZeroDivisionError('Cannot divide by zero')
+         return
+     return price_a / price_b
+ 
+diff --git a/client_test.py b/client_test.py
+index 43f8dd0..e6e8558 100644
+--- a/client_test.py
++++ b/client_test.py
+@@ -11,7 +11,7 @@ class ClientTest(unittest.TestCase):
+     """ ------------ Add the assertion below ------------ """
+     for quote in quotes:
+           self.assertEqual(getDataPoint(quote),(quote['stock'], quote['top_bid']['price'], quote['top_ask']['price'], (quote['top_bid']['price'] + quote['top_ask']['price'])/2 ), msg = "Fail => test_getDataPoint_calculatePrice() Expected value does not match actual value")
+-          self.assertTrue(True, "test_getDataPoint_calculatePrice() => Testcase passed successfully")
++          # self.assertTrue(True, "test_getDataPoint_calculatePrice() => Testcase passed successfully")
+                             
+   def test_getDataPoint_calculatePriceBidGreaterThanAsk(self):
+     quotes = [
+@@ -22,7 +22,7 @@ class ClientTest(unittest.TestCase):
+     
+     for quote in quotes:
+           self.assertEqual(getDataPoint(quote),(quote['stock'], quote['top_bid']['price'], quote['top_ask']['price'], (quote['top_bid']['price'] + quote['top_ask']['price'])/2) ,msg = "Fail => test_getDataPoint_calculatePriceBidGreaterThanAsk() Expected value does not match actual value")
+-          self.assertTrue(True, "test_getDataPoint_calculatePriceBidGreaterThanAsk() => Testcase passed successfully")
++          #self.assertTrue(True, "test_getDataPoint_calculatePriceBidGreaterThanAsk() => Testcase passed successfully")
+               
+   """ ------------ Add more unit tests ------------ """
+   
+@@ -30,23 +30,19 @@ class ClientTest(unittest.TestCase):
+         stockPrices = [
+             {'price_a': 118.24, 'price_b': 120.09},
+             {'price_a': 119.84, 'price_b':121.17},
+-            {'price_a': 0, 'price_b':121.17},
++            
+         ]
+ 
+         for price in stockPrices:
+               self.assertEqual( getRatio(price['price_a'], price['price_b']) , price['price_a']/price['price_b'] )
+              
+-  def test_getRatio_divideByZero(self):
+-        self.assertIsNone(getRatio(10,0))
+-        
+-  '''
+-        stockPrices = [
+-            {'price_a': 118.24, 'price_b':0},
+-        ]
+-
+-        for price in stockPrices:
+-              self.assertEqual( getRatio(price['price_a'], price['price_b']) , price['price_a']/price['price_b'] )
+-'''
++  def test_getRatio_calculateDivideByZero(self):
++      stockPrices = [{'ABC': 118.24, 'DEF': 0},
++                        {'ABC': 119.48, 'DEF': 0}]
++ 
++      for stockPrice in stockPrices:            
++            with self.assertRaises(ZeroDivisionError):
++              getRatio(stockPrice['ABC'], stockPrice['DEF'])
+ 
+ if __name__ == '__main__':
+     unittest.main()
+-- 
+2.37.3.windows.1
+
